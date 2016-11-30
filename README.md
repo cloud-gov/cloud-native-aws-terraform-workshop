@@ -1,4 +1,4 @@
-# Deploying a 12-factor app with Terraform, shell scripts, CI, and AWS.
+# Provisioning and Deploying a 12-factor app in AWS with Terraform, shell scripts, and CI.
 
 A 1-day hands-on training class in which participants will learn:
 
