@@ -15,3 +15,23 @@ Prerequisites:
 * You must be comfortable using the shell / command-line.
 * Please install the [AWS CLI](https://aws.amazon.com/cli/), [Terraform](https://www.terraform.io/), and [Vagrant](https://www.vagrantup.com/) BEFORE coming to class.
 
+### Public domain
+
+This project is in the worldwide [public domain](LICENSE.md). As stated
+in [CONTRIBUTING](CONTRIBUTING.md):
+
+> This project is in the public domain within the United States, and copyright
+> and related rights in the work worldwide are waived through the [CC0 1.0
+> Universal public domain
+> dedication](https://creativecommons.org/publicdomain/zero/1.0/).
+>
+> All contributions to this project will be released under the CC0 dedication.
+> By submitting a pull request, you are agreeing to comply with this waiver of
+> copyright interest.
+
+Note that parts of this project have been taken from the [reveal.js][]
+repository, and are Copyright (C) 2016 Hakim El Hattab.
+
+[reveal.js]: https://github.com/hakimel/reveal.js
+[18F branding]: https://pages-staging.18f.gov/brand/
+[visual style guide]: https://pages-staging.18f.gov/brand/visual-style/

@@ -1,0 +1,79 @@
+/**
+ * 18F theme for reveal.js. Forked from the 'white' theme by
+ * Hakim El Hattab.
+ */
+
+
+// Default mixins and settings -----------------
+@import "../template/mixins";
+@import "../template/settings";
+// ---------------------------------------------
+
+
+// Include theme-specific fonts
+@import url(../../fonts/18FNimbusSansL.css);
+
+$whiteColor: #ffffff;
+$lightColor: #b3efff;
+$brightColor: #00cfff;
+$mediumColor: #046b99;
+$darkColor: #1c304a;
+$blackColor: #000000;
+
+// Override theme settings (see ../template/settings.scss)
+$backgroundColor: $darkColor;
+
+$mainColor: $lightColor;
+$headingColor: $whiteColor;
+
+$mainFontSize: 38px;
+$mainFont: "18F Nimbus Sans L", Helvetica, Arial, sans-serif;
+$headingFont: "18F Nimbus Sans L", Helvetica, Arial, sans-serif;
+$headingTextShadow: none;
+$headingLetterSpacing: normal;
+$headingTextTransform: none;
+$headingFontWeight: bold;
+$linkColor: $brightColor;
+$linkColorHover: lighten( $linkColor, 15% );
+$selectionBackgroundColor: lighten( $linkColor, 25% );
+
+$heading1Size: 2.5em;
+$heading2Size: 1.6em;
+$heading3Size: 1.3em;
+$heading4Size: 1.0em;
+
+section.has-light-background {
+	&, h1, h2, h3, h4, h5, h6 {
+		color: $darkColor;
+	}
+}
+
+.reveal .logo {
+  position: fixed;
+  z-index: 30;
+  left: 10px;
+  top: 10px;
+  -webkit-user-select: none;
+
+  svg.logo-18f {
+    width: 75px;
+    height: 75px;
+  }
+}
+
+.reveal.has-light-background {
+  svg.logo-18f {
+    fill: $darkColor;
+  }
+}
+
+svg.logo-18f {
+  fill: $mainColor;
+  -webkit-transition: fill .15s ease;
+     -moz-transition: fill .15s ease;
+          transition: fill .15s ease;
+}
+
+// Theme template ------------------------------
+@import "../template/theme";
+// ---------------------------------------------

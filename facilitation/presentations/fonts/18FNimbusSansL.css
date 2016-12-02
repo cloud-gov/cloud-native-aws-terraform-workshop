@@ -1,0 +1,16 @@
+@font-face {
+  font-family: "18F Nimbus Sans L";
+  src: url("18FNimbusSansL-regular.ttf");
+}
+
+@font-face {
+  font-family: "18F Nimbus Sans L";
+  src: url("18FNimbusSansL-italic.ttf");
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "18F Nimbus Sans L";
+  src: url("18FNimbusSansL-bold.ttf");
+  font-weight: bold;
+}
