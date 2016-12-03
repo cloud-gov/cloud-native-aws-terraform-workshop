@@ -32,39 +32,40 @@
 				<section>
 				  <h2>Learning objectives</h2>
 				  <ul>
-				    <li>Understand AWS guest networking primitives</li>
+				    <li>Understand AWS guest networking primitives and configuration</li>
 				    <li>Be able to spin up an EC2 instance with terraform</li>
 		                    <li>Know how to make an EC2 box public routable</lu>
 				  </ul>
 				</section>
 				<section>
 				  <h2>Set up your access</h2>
-				  <pre><code>
-export AWS_ACCESS_KEY_ID=[access key]
-export AWS_SECRET_ACCESS_KEY=[secret key]
+				  <pre><code data-noescape>
+export AWS_ACCESS_KEY_ID=<mark>[access key]</mark>
+export AWS_SECRET_ACCESS_KEY=<mark>[secret key]</mark>
 export AWS_DEFAULT_REGION=us-east-1
 ssh-keygen -f ~/.ssh/aws
-aws ec2 import-key-pair --key-name [key name] \
+aws ec2 import-key-pair --key-name <mark>[key name]</mark> \
   --public-key-material file://$HOME//.ssh/aws.pub
 
 				  </code></pre>
 				</section>
 				<section>
 				  <h2>Your first terraform file</h2>
-				  <pre><code>resource "aws_vpc" "workshop_vpc" {
-    cidr_block = "10.0.X.0/24"
+				  <pre><code data-noescape>resource "aws_vpc" "workshop_vpc" {
+    cidr_block = "<mark>10.0.X.0/24</mark>"
 }
 
 resource "aws_subnet" "public_subnet_1" {
     vpc_id = "${aws_vpc.workshop_vpc.id}"
     availability_zone = "us-east-1a"
-    cidr_block = "10.0.X.0/26"
+    cidr_block = "<mark>10.0.X.0/26</mark>"
 }
 
 resource "aws_instance" "bastion" {
     ami = "ami-6869aa05"
     subnet_id = "${aws_subnet.public_subnet_1.id}"
-    key_name = "[key name]"
+    associate_public_ip_address = true
+    key_name = "<mark>[key name]</mark>"
     instance_type = "t2.micro"
 }</code></pre>
 				  <aside class="notes">
@@ -78,8 +79,12 @@ resource "aws_instance" "bastion" {
 				    <li>Save the file as <code>terraform/terraform.tf</code></li>
 				    <li>Run <code>terraform apply terraform</code></li>
 				    <li><code>grep '"id": "i-.*"' terraform.tfstate</code></li>
-				    <li>Go find it in the console</li>
+				    <li>Go find your new EC2 instance in the console</li>
+				    <li>Try pinging it! Hmmm...</li>
 				  </ul>
+				  <aside class="notes">
+				    We're going to talk about networking shortly...
+				  </aside>
 				</section>
 				<section>
 				  <h2>Now let's kill it</h2>
@@ -108,12 +113,145 @@ resource "aws_instance" "bastion" {
 				</section>
 				<section>
 				  <h2>Networking</h2>
-				  We created an instance, but we can't connect to it. To do that, we need to understand networking. We'll start with regions and availability zones.
+				  We created an instance, but we can't connect to it. To do that, we need to understand how networking is modeled in AWS. We'll start with regions and availability zones.
 				  
 				  <aside class="notes">
 				    In fact, a fresh AWS account gives you a default VPC with some stuff set up in it so you can create internet routable hosts from the beginning - but we won't be using that. 
 				  </aside>
 				</section>
+				<section>
+				  <h2>AWS datacenters ("regions")</h2>
+				  <img src="https://d0.awsstatic.com/Test%20Images/Kate%20Test%20Images/Global_Infrastructure_kwV21.png" alt="AWS's datacenters"/>
+				  <aside class="notes">
+				    AWS datacenters (or "regions") are completely independent. Traffic between them goes over the public internet.
+				  </aside>
+                                </section>
+				<section>
+				  <h2>Availability zones</h2>
+				  Availability zones within regions are isolated, but have low latency links between them. 
+				  <img src="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/images/aws_regions.png" alt="AWS's datacenters"/>
+                                </section>
+				<section>
+				  <h2>VPCs, subnets, and routes</h2>
+				  <img src="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/images/custom-route-table-diagram.png" style="float:right" width="45%"/>
+				  <ul style="width:45%">
+				    <li class="fragment">Instances always launched in a subnet</li>
+				    <li class="fragment">Subnets always associated with an AZ and a VPC</li>
+				    <li class="fragment">Routers always associated with a VPC and one or more subnets</li>
+				    <li class="fragment">You need a gateway to get anywhere</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>Let's add a gateway & route table</h2>
+				  <pre><code>resource "aws_internet_gateway" "workshop_gw" {
+    vpc_id = "${aws_vpc.workshop_vpc.id}"
+}
+
+resource "aws_route_table" "workshop_route_table" {
+    vpc_id = "${aws_vpc.workshop_vpc.id}"
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = "${aws_internet_gateway.workshop_gw.id}"
+    }
+}
+
+resource "aws_route_table_association" "route_subnet_1" {
+    subnet_id = "${aws_subnet.public_subnet_1.id}"
+    route_table_id = "${aws_route_table.workshop_route_table.id}"
+}</code></pre>
+				</section>
+				<section>
+				  <h2>OK let's network!</h2>
+				  <ul>
+				    <li><code>terraform plan</code></li>
+				    <li>How cool is that!</li>
+				    <li><code>terraform apply terraform</code></li>
+				    <li>(Note: <code>terraform apply</code> is idempotent)</li>
+				    <li>But... still can't ping our bastion. Boo!</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>Security groups</h2>
+				  <ul>
+				    <li class="fragment">A security group is like a firewall.</li>
+				    <li class="fragment">They can be attached to multiple AWS resource types</li>
+				    <li class="fragment">By default, VPCs come with a security group that allows egress but not ingress</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>Let's add a security group</h2>
+				  <pre><code>resource "aws_security_group" "bastion_sg" {
+    vpc_id = "${aws_vpc.workshop_vpc.id}"
+
+    ingress {
+        from_port = 8
+        to_port = 0
+        protocol = "icmp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+}
+</code></pre>
+				</section>
+				<section>
+				  <h2>Now attach it to our instance</h2>
+				  <pre><code data-noescape>resource "aws_instance" "bastion" {
+    ami = "ami-6869aa05"
+    subnet_id = "${aws_subnet.public_subnet_1.id}"
+    associate_public_ip_address = true
+    key_name = "[key name]"
+    instance_type = "t2.micro"
+    <mark>vpc_security_group_ids = ["${aws_security_group.bastion_sg.id}"]</mark>
+}</code></pre>
+				  <ul>
+				    <li><code>terraform apply terraform</code></li>
+				    <li>...and now we can ping our host!</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>Add ssh access too</h2>
+				  <pre><code>    ingress {
+        from_port = 22
+        to_port = 22
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+</code></pre>
+				  <ul>
+				    <li><code>terraform apply terraform</code></li>
+				    <li>...and now we can ssh in too!</li>
+				    <li>Once you're in, try pinging Google</li>
+				    <li>Hmmm...</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>Add an egress rule</h2>
+				  <pre><code>    egress {
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+</code></pre>
+				  <ul>
+				    <li><code>terraform apply terraform</code></li>
+				    <li>Now we can see out.</li>
+				    <li>By default, AWS lets you egress - but Terraform turns this off unless you declare it explicitly.</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>Unit 2 review</h2>
+				  <ul>
+				    <li class="fragment">We have a VPC, a subnet in an AZ, a gateway, route table, security group...</li>
+				    <li class="fragment">...and a host. <span class="fragment">That we can reach.</span></li>
+				    <li class="fragment">We've understood all the basics of AWS networking</li>
+				    <li class="fragment">By adding block storage (EBS), we can "lift and shift"</li>
+				    <li class="fragment">However there is a cloud on the horizon...</li>
+				  </ul>
+				</section>
+				<section>
+				  <a href="unit3.html">Unit 3</a>
+				</section>
+
 			</div>
 		</div>
 
