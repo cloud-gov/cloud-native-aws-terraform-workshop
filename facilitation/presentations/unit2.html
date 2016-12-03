@@ -67,6 +67,9 @@ resource "aws_instance" "bastion" {
     key_name = "[key name]"
     instance_type = "t2.micro"
 }</code></pre>
+				  <aside class="notes">
+				    In a VPC, the max hosts you can create is a /16. So if you want to peer with another VPC, you'll want to start with, say, a /24.
+				  </aside>
 				</section>
 				<section>
 				  <h2>Run Terraform</h2>
@@ -101,6 +104,14 @@ resource "aws_instance" "bastion" {
 				  </ul>
 				  <aside class="notes">
 				    You probably want multiple S3 buckets for different systems or layers. See <a href="https://charity.wtf/2016/04/14/scrapbag-of-useful-terraform-tips/">Charity Major's blog.</a>
+				  </aside>
+				</section>
+				<section>
+				  <h2>Networking</h2>
+				  We created an instance, but we can't connect to it. To do that, we need to understand networking. We'll start with regions and availability zones.
+				  
+				  <aside class="notes">
+				    In fact, a fresh AWS account gives you a default VPC with some stuff set up in it so you can create internet routable hosts from the beginning - but we won't be using that. 
 				  </aside>
 				</section>
 			</div>
