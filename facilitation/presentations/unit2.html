@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/18f.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+				  <h2>Infrastructure as Code with Terraform and AWS</h2>
+				  <h2><em>Unit 2: Guest Networking</em></h2>
+				  <p>This 18F <a href="https://github.com/18F/12-factor-aws-terraform-training">workshop</a> is in the worldwide public domain.</p>
+				</section>
+				<section>
+				  <h2>Learning objectives</h2>
+				  <ul>
+				    <li>Understand AWS guest networking primitives</li>
+				    <li>Be able to spin up an EC2 instance with terraform</li>
+		                    <li>Know how to make an EC2 box public routable</lu>
+				  </ul>
+				</section>
+				<section>
+				  <h2>Set up your access</h2>
+				  <pre><code>
+export AWS_ACCESS_KEY_ID=[access key]
+export AWS_SECRET_ACCESS_KEY=[secret key]
+export AWS_DEFAULT_REGION=us-east-1
+ssh-keygen -f ~/.ssh/aws
+aws ec2 import-key-pair --key-name [key name] \
+  --public-key-material file://$HOME//.ssh/aws.pub
+
+				  </code></pre>
+				</section>
+				<section>
+				  <h2>Your first terraform file</h2>
+				  <pre><code>resource "aws_vpc" "workshop_vpc" {
+    cidr_block = "10.0.X.0/24"
+}
+
+resource "aws_subnet" "public_subnet_1" {
+    vpc_id = "${aws_vpc.workshop_vpc.id}"
+    availability_zone = "us-east-1a"
+    cidr_block = "10.0.X.0/26"
+}
+
+resource "aws_instance" "bastion" {
+    ami = "ami-6869aa05"
+    subnet_id = "${aws_subnet.public_subnet_1.id}"
+    key_name = "[key name]"
+    instance_type = "t2.micro"
+}</code></pre>
+				</section>
+				<section>
+				  <h2>Run Terraform</h2>
+				  <ul>
+				    <li>Create a directory called <code>terraform</code></li>
+				    <li>Save the file as <code>terraform/terraform.tf</code></li>
+				    <li>Run <code>terraform apply terraform</code></li>
+				    <li><code>grep '"id": "i-.*"' terraform.tfstate</code></li>
+				    <li>Go find it in the console</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>Now let's kill it</h2>
+				  <ul>
+				    <li>Run <code>terraform destroy terraform</code></li>
+				    <li>This will take a while...</li>
+				    <li>...So let's talk about terraform state</li> 
+				  </ul>
+				</section>
+				<section>
+				  <h2>Terraform state</h2>
+				  <ul>
+				    <li>You've seen a file called <code>terraform.tfstate</code></li>
+				    <li>By default Terraform stores state locally</li>
+				    <li>For a real project, you'll store it in an S3 bucket</li>
+				    <li><pre><code>terraform remote config -backend=s3 \
+  -backend-config="bucket=[unique_bucket_name]" \
+  -backend-config="key=network/terraform.tfstate" \
+  -backend-config="region=us-east-1"</code></pre></li>
+				    <li>If your state file is deleted or corrupted...</li>
+				    <li>...you just orphaned everything in your AWS account</li>
+				  </ul>
+				  <aside class="notes">
+				    You probably want multiple S3 buckets for different systems or layers. See <a href="https://charity.wtf/2016/04/14/scrapbag-of-useful-terraform-tips/">Charity Major's blog.</a>
+				  </aside>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
