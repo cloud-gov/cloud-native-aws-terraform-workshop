@@ -1,4 +1,4 @@
-# Provisioning and Deploying a 12-factor app in AWS with Terraform, shell scripts, and CI.
+# Provisioning and Deploying Cloud Native Systems in AWS with Terraform, Shell Scripts, and CI.
 
 A 1-day hands-on training class in which participants will learn:
 
@@ -9,7 +9,7 @@ A 1-day hands-on training class in which participants will learn:
 * Very simple continuous deployment using shell scripts, an S3 bucket, and [Snap CI](https://snap-ci.com/).
 * Why building distributed systems motivates the [12-factor app](https://12factor.net/) pattern.
 
-Prerequisites:
+### Prerequisites:
 
 * You must bring a laptop with support for bash. Linux, MacOS, or Windows 10 with Windows Subsystem for Linux installed are all fine.
 * You must be comfortable using the shell / command-line.
