@@ -32,7 +32,9 @@
 				<section>
 				  <h2>Learning objectives</h2>
 				  <ul>
-				    <li>Understand</li>
+				    <li>Understand architectural implications of building distributed systems</li>
+				    <li>Know how the cloud enables building high availability systems</li>
+				    <li>Understand the trade-offs involved in building cloud native systems</li>
 				  </ul>
 				</section>
 				<section>
@@ -96,21 +98,26 @@
 				<section>
 				  <h2>Cloud Native apps</h2>
 				  <ul>
-				    <li>Make apps stateless so they can scale horizontally and fail arbitrarily;</li>
-				    <li>Make apps disposable so we can start them up fast and automatically;</li>
-				    <li>Separate packages from configuration information for all resources (remote or attached);</li>
-				    <li>Treat logging as a remote service;</li>
-				    <li>Instrument everything! Localizing problems is hard in distributed systems, and some are emergent.</li>
+				    <li class="fragment">Make apps stateless so they can scale horizontally and fail arbitrarily;</li>
+				    <li class="fragment">Make apps disposable so we can start them up fast and automatically;</li>
+				    <li class="fragment">Separate packages from configuration information for all resources (remote or attached);</li>
+				    <li class="fragment">Each <a href="http://martinfowler.com/bliki/BoundedContext.html">bounded context</a> gets its own app;</li>
+				    <li class="fragment">Apps are independently testable and deployable;</li>
+				    <li class="fragment">Treat logging as a remote service;</li>
+				    <li class="fragment">Instrument everything! Localizing problems is hard in distributed systems, and some issues are emergent.</li>
 				  </ul>
 				</section>
 				<section>
-				  <h2>Unit 2 review</h2>
+				  <h2>Unit 3 review</h2>
 				  <ul>
-				    <li class="fragment"></li>
+				    <li class="fragment">Internet systems are distributed systems</li>
+				    <li class="fragment">We need to architect for availability in the face of an unreliable platform</li>
+				    <li class="fragment">Design for stateless, disposable apps and hosts that can be independently tested and deployed</li>
+				    <li class="fragment">Be able to provision in a fully automated fashion from version control</li>
 				  </ul>
 				</section>
 				<section>
-				  <a href="unit3.html">Unit 3</a>
+				  <a href="unit4.html">Unit 4</a>
 				</section>
 
 			</div>
