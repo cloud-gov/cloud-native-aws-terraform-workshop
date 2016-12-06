@@ -36,6 +36,74 @@
 				  </ul>
 				</section>
 				<section>
+				  <blockquote>Operations at web scale is the ability to consistently create and deploy reliable software to an unreliable platform that scales horizontally.</blockquote>
+				  &mdash; Jesse Robbins, "Master of Disaster" at Amazon, <a href="http://oreil.ly/1HRKUVE">Operations is a Competitive Advantage</a> (O'Reilly)
+				</section>
+				<section>
+				  <h2>Unreliable platform</h2>
+				  <img src="images/oh_noes.png" />
+				  <aside class="notes">
+				    This will happen in your physical datacenter too! Amazon mitigates it somewhat with EBS volumes, which have an annual failure rate of 0.1%-0.2%.
+				  </aside>
+				</section>
+				<section>
+				  <h2>Unreliable platform</h2>
+				  <ul>
+				    <li class="fragment">If your system is on the internet, you're on an unreliable platform.</li>
+				    <li class="fragment">Amazon regions have a 99.95% SLA for availability (including RDS)...</li>
+				    <li class="fragment">...but only if you use multiple availability zones.</li>
+				  </ul>
+				  <aside class="notes">
+				     Networks are subject to partitions. Eric Brewer's CAP theorem tells us that we must trade off consistency vs availability - if we want > 99.95% availability, we can't depend on AWS's multi-AZ primitives. This is not academic - a whole AWS region became unavailable. The Netflix blog post on the 2011 AWS outage is worth reading: http://techblog.netflix.com/2011/04/lessons-netflix-learned-from-aws-outage.html
+				  </aside>
+				</section>				
+				<section>
+				  <h2>Scaling horizontally</h2>
+				  <img src="images/nosql.png"/>
+				  <aside class="notes">
+				    Clouds are elastic - you can scale on demand. This must be architected for. Only a "shared nothing" architecture truly allows this. But, at least, we need to keep session state out of the application tier. Image credit: http://howfuckedismydatabase.com/nosql/
+				  </aside>
+				</section>
+				<section>
+				  <h2>Destroy works of art</h2>
+				  <ul>
+				    <li class="fragment">Hosts should be <em>disposable</em>.</li>
+				    <li class="fragment">Provisioning new hosts should be fully automated using versioned config.</li>
+				    <li class="fragment">Our infrastructure should automatically detect failures and kill.</li>
+				    <li class="fragment">If there's insufficient volatility, we should introduce more (e.g. chaos monkey).</li>
+				  </ul>				  
+				</section>
+				<section>
+				  <h2>Introduce failure</h2>
+				  <img src="images/chubby.jpg">
+				  <i>Site Reliability Engineering: How Google Runs Production Systems</i>, p39.
+				  </ul>				  
+				</section>
+				<section>
+				  <h2>Twelve Factor Apps</h2>
+				  <ul>
+				    <li>Declarative formats for setup automation, to minimize time and cost for new developers;</li>
+				    <li>Clean contract with the underlying operating system, offering maximum portability;</li>
+				    <li>Suitable for deployment on modern cloud platforms</li>
+				    <li>Minimize divergence between development and production, enabling continuous deployment;</li>
+				    <li>Can scale up without significant changes to tooling, architecture, or development practices.</li>
+				  </ul>
+				  &mdash; Andrew Wiggins, <a href="https://12factor.net">https://12factor.net/</a>
+				  <aside class="notes">
+				    Basically, a combination of cloud-native architecture plus continuous delivery.
+				  </aside>
+				</section>
+				<section>
+				  <h2>Cloud Native apps</h2>
+				  <ul>
+				    <li>Make apps stateless so they can scale horizontally and fail arbitrarily;</li>
+				    <li>Make apps disposable so we can start them up fast and automatically;</li>
+				    <li>Separate packages from configuration information for all resources (remote or attached);</li>
+				    <li>Treat logging as a remote service;</li>
+				    <li>Instrument everything! Localizing problems is hard in distributed systems, and some are emergent.</li>
+				  </ul>
+				</section>
+				<section>
 				  <h2>Unit 2 review</h2>
 				  <ul>
 				    <li class="fragment"></li>
