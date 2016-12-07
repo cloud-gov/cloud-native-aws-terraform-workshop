@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/18f.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+				  <h2>Infrastructure as Code with Terraform and AWS</h2>
+				  <h2><em>Unit 5: Monitoring</em></h2>
+				  <p>This 18F <a href="https://github.com/18F/12-factor-aws-terraform-training">workshop</a> is in the worldwide public domain.</p>
+				</section>
+				<section>
+				  <h2>Learning objectives</h2>
+				  <ul>
+				    <li>Understand how TDD applies to infrastructure</li>
+				    <li>Know how to create CloudWatch alerts</li>
+				    <li>Be able to refactor infrastructure</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>Test-driven Development (TDD)</h2>
+				  <ul>
+				    <li class="fragment">Write a <span style="color:red">failing test</span> first</li>
+				    <li class="fragment">Do the simplest thing that <span style="color:green">makes the test pass</span></li>
+				    <li class="fragment">Check in</li>
+				    <li class="fragment">Refactor</li>
+				    <li class="fragment">Check in again</li>
+				    <li class="fragment">Work in small batches, multiple check-ins per day</li>
+				    <li class="fragment">(sometimes known as <span style="color:red">red</span> - <span style="color:green">green</span> - refactor)</li>
+				</section>
+				<section>
+				  <h2>Why TDD?</h2>
+				  <ul>
+				    <li class="fragment">Think like a user (user-first design)</li>
+				    <li class="fragment">Make your design testable</li>
+				    <li class="fragment">Create an executable specification of your system</li>
+				    <li class="fragment">Work in small batches</li>
+				    <li class="fragment">Keep your design simple</li>
+				    <li class="fragment">Oh, and you get some automated tests</li>
+				</section>
+				<section>
+				  <h2>Refactoring</h2>
+				  <blockquote>...is a disciplined technique for restructuring an existing body of code, altering its internal structure without changing its external behavior.</blockquote>
+				  &mdash; Martin Fowler, <a href="https://www.refactoring.com/">https://www.refactoring.com/</a>
+				</section>
+				<section>
+				  <h2>Refactoring</h2>
+				  <blockquote>Its heart is a series of small behavior preserving transformations. Each transformation (called a “refactoring”) does little, but a sequence of transformations can produce a significant restructuring. Since each refactoring is small, it’s less likely to go wrong. The system is kept fully working after each small refactoring, reducing the chances that a system can get seriously broken during the restructuring.</blockquote>
+				</section>
+				<section>
+				  <h2>Unit 5 review</h2>
+				  <ul>
+				    <li class="fragment">We introduced test-driven development</li>
+				    <li class="fragment">We created some alerts</li>
+				    <li class="fragment">We refactored our code</li>
+				  </ul>
+				</section>
+				<section>
+				  <a href="unit6.html">Unit 6</a>
+				</section>
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>

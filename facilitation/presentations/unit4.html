@@ -168,6 +168,7 @@ output "alb.dns" {
 #!/usr/bin/env bash
 yum update -y
 yum install -y httpd24
+service httpd start
 EOF
 }</code></pre>
 				</section>
@@ -187,19 +188,9 @@ EOF
 				<section>
 				  <h2>Unit 4 review</h2>
 				  <ul>
-				    <li class="fragment">We built an autoscale group</li>
-				    <li class="fragment">We need to architect for availability in the face of an unreliable platform</li>
-				    <li class="fragment">Design for stateless, disposable apps and hosts that can be independently tested and deployed</li>
-				    <li class="fragment">Be able to provision in a fully automated fashion from version control</li>
-				  </ul>
-				</section>
-				<section>
-				  <h2>Unit 4 review</h2>
-				  <ul>
-				    <li class="fragment">We built an autoscale group</li>
-				    <li class="fragment">We need to architect for availability in the face of an unreliable platform</li>
-				    <li class="fragment">Design for stateless, disposable apps and hosts that can be independently tested and deployed</li>
-				    <li class="fragment">Be able to provision in a fully automated fashion from version control</li>
+				    <li class="fragment">We stood up an AWS load balancer and autoscale group</li>
+				    <li class="fragment">We deployed all the infrastructure required for a highly available web app</li>
+				    <li class="fragment">We provisioned everything purely from versioned Terraform config</li>
 				  </ul>
 				</section>
 				<section>
