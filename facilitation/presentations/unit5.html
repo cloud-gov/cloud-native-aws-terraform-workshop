@@ -59,6 +59,71 @@
 				    <li class="fragment">Oh, and you get some automated tests</li>
 				</section>
 				<section>
+				  <h2>CloudWatch</h2>
+				  <p>AWS' monitoring service</p>
+				  <ul>
+				    <li class="fragment">Log aggregation and archiving</li>
+				    <li class="fragment">Alerting</li>
+				    <li class="fragment">Metrics dashboards</li>
+				    <li class="fragment">Custom metrics</li>
+				</section>
+				<section>
+				  <h2>Let's create an alert!</h2>
+				  <p>First, we'll set up a topic in AWS Simple Notification Service (SNS).</p>
+				  <img src="http://docs.aws.amazon.com/sns/latest/dg/images/sns-how-works.png" alt="AWS SNS" />
+				</section>
+				<section>
+				  <h2>Create SNS topic</h2>
+				  <pre><code data-noescape>resource "aws_sns_topic" "workshop_alerts" {
+    name = "workshop-alerts-topic-<mark>[name]</mark>"
+}
+
+output "sns.arn" {
+    value = "${aws_sns_topic.workshop_alerts.arn}"
+}</code> 
+				</section>
+				<section>
+				  <h2>Subscribe to your topic</h2>
+				  <p>You can't subscribe via SMS or email using Terraform, because the endpoint must be authorized. So run <code>terraform apply terraform</code> and note the value of <code>sns.arn</code> it outputs. Then at your command prompt run:</p>
+				  <pre><code data-noescape>aws sns subscribe --topic-arn <mark>&lt;sns.arn&gt;</mark> --protocol sms \<br/>--notification-endpoint "<mark>&lt;cell number&gt;</mark>"</code></pre>
+				  <p>Check it works:</p>
+				  <pre><code data-noescape>aws sns publish --message "Wotcha" --topic <mark>&lt;sns.arn&gt;</mark></code></pre>
+				  <aside class="notes">
+				    Note that this means you can't use SNS as a general SMS service, because the destination is configured at the infrastructure layer, not at the application layer.
+				</section>
+				<section>
+				  <h2>Now we configure the alert</h2>
+				  <pre><code data-noescape>resource "aws_cloudwatch_metric_alarm" "dead_server" {
+  alarm_name = "Less than two instances in my autoscale group!"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods = "1"
+  metric_name = "GroupInServiceInstances"
+  namespace = "AWS/AutoScaling"
+  period = "60"
+  statistic = "Minimum"
+  threshold = "2"
+  dimensions {
+    AutoScalingGroupName =
+      "${aws_autoscaling_group.workshop_autoscale.name}"
+  }
+  alarm_actions = ["${aws_sns_topic.workshop_alerts.arn}"]
+}</code></pre>
+				  <aside class="notes">
+				    "Alarm actions" can also include triggering an autoscaling policy (say, increasing or decreasing the number of instances) or acting directly on a given instance.
+				  </aside>
+				</section>
+				<section>
+				  <h2>Trigger the alert</h2>
+				  <ul>
+				    <li class="fragment"><code>terraform apply terraform</code></li>
+				    <li class="fragment">Then go to the console and kill one of the autoscaling instances</li>
+				    <li class="fragment">In a minute or so you should get the alert. Check the CloudWatch console for alert status</li>
+				  </ul>
+				  <aside class="notes">
+				    Of course, this is quite a poor test. Really we should have something that checks the health of the ALB target group, combined with validating the output of an http GET to the ALB endpoint.
+				  </aside>
+				</section>
+				<section>
 				  <h2>Refactoring</h2>
 				  <blockquote>...is a disciplined technique for restructuring an existing body of code, altering its internal structure without changing its external behavior.</blockquote>
 				  &mdash; Martin Fowler, <a href="https://www.refactoring.com/">https://www.refactoring.com/</a>
@@ -68,10 +133,16 @@
 				  <blockquote>Its heart is a series of small behavior preserving transformations. Each transformation (called a “refactoring”) does little, but a sequence of transformations can produce a significant restructuring. Since each refactoring is small, it’s less likely to go wrong. The system is kept fully working after each small refactoring, reducing the chances that a system can get seriously broken during the restructuring.</blockquote>
 				</section>
 				<section>
+				  <h2>Refactor our Terraform script</h2>
+				  <p>We're going to do something very simple: move all the networking stuff (VPC, subnets, security groups, routing tables, gateway) into a script called <code>networks.tf</code>. Then the autoscaling group and ALB will go into <code>autoscaling.tf</code>. Finally, we'll put alerting into <code>monitoring.tf</code>.</p> 
+				  <p>When you're done, run <code>terraform apply terraform</code> and make sure everything works.</p>
+				</section>
+				<section>
 				  <h2>Unit 5 review</h2>
 				  <ul>
 				    <li class="fragment">We introduced test-driven development</li>
 				    <li class="fragment">We created some alerts</li>
+				    <li class="fragment">We triggered the alert and then auto scaling reset it</li>
 				    <li class="fragment">We refactored our code</li>
 				  </ul>
 				</section>
