@@ -64,7 +64,14 @@
     availability_zone = "us-east-1d"
     cidr_block = "<mark>10.0.X.64/26</mark>"
 }
-</code></pre>
+
+resource "aws_route_table_association" "route_subnet_2" {
+    subnet_id = "${aws_subnet.public_subnet_2.id}"
+    route_table_id = "${aws_route_table.workshop_route_table.id}"
+}</code></pre>
+				  <aside class="notes">
+				    Don't forget to add a route for it...
+				  </aside>
 				</section>
 				<section>
 				  <h2>Security groups: ALB</h2>
@@ -141,13 +148,16 @@ resource "aws_alb_listener" "workshop_alb_http" {
     vpc_id = "${aws_vpc.workshop_vpc.id}"
     port = 80
     protocol = "HTTP"
+    health_check {
+      matcher = "200,301,403"
+  }
 }
 
 output "alb.dns" {
     value = "${aws_alb.workshop_alb.dns_name}"
 }</code></pre>
 				  <aside class="notes">
-				    
+				    403 you ask? It's because the default install page on Apache httpd sends you a 403.
 				  </aside>
 				</section>
 				<section>
