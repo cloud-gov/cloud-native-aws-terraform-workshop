@@ -92,35 +92,132 @@ output "sns.arn" {
 				    Note that this means you can't use SNS as a general SMS service, because the destination is configured at the infrastructure layer, not at the application layer.
 				</section>
 				<section>
-				  <h2>Now we configure the alert</h2>
+				  <h2>Configure the alert</h2>
 				  <pre><code data-noescape>resource "aws_cloudwatch_metric_alarm" "dead_server" {
-  alarm_name = "Less than two instances in my autoscale group!"
-  comparison_operator = "LessThanThreshold"
-  evaluation_periods = "1"
-  metric_name = "GroupInServiceInstances"
-  namespace = "AWS/AutoScaling"
-  period = "60"
-  statistic = "Minimum"
-  threshold = "2"
-  dimensions {
-    AutoScalingGroupName =
-      "${aws_autoscaling_group.workshop_autoscale.name}"
-  }
-  alarm_actions = ["${aws_sns_topic.workshop_alerts.arn}"]
+    alarm_name = "Less than two healthy hosts in my cluster!"
+    comparison_operator = "LessThanThreshold"
+    evaluation_periods = "1"
+    metric_name = "HealthyHostCount"
+    namespace = "AWS/ApplicationELB"
+    period = "60"
+    statistic = "Minimum"
+    threshold = "2"
+    dimensions {
+        LoadBalancer =
+            "${aws_alb.workshop_alb.arn_suffix}"
+        TargetGroup =
+            "${aws_alb_target_group.workshop_alb.arn_suffix}"
+    }
+    alarm_actions = ["${aws_sns_topic.workshop_alerts.arn}"]
+    ok_actions = ["${aws_sns_topic.workshop_alerts.arn}"]
 }</code></pre>
+Then <code>terraform apply terraform</code>
 				  <aside class="notes">
 				    "Alarm actions" can also include triggering an autoscaling policy (say, increasing or decreasing the number of instances) or acting directly on a given instance.
+				    The alert will trigger. Why? Because Apache is returning a 403 (this is the default with a new install).
 				  </aside>
 				</section>
 				<section>
-				  <h2>Trigger the alert</h2>
+				  <h2>Provisioning and Deploying</h2>
 				  <ul>
-				    <li class="fragment"><code>terraform apply terraform</code></li>
-				    <li class="fragment">Then go to the console and kill one of the autoscaling instances</li>
-				    <li class="fragment">In a minute or so you should get the alert. Check the CloudWatch console for alert status</li>
+				    <li class="fragment">Multiple ways to do this. Chef / Puppet, or AMIs (use Packer)</li>
+				    <li class="fragment">Simplest possible thing: a script in an S3 bucket</li>
+				    <li class="fragment">But our host doesn't have access to S3!</li>
+				    <li class="fragment">Give hosts an IAM role with an instance profile</li>
 				  </ul>
 				  <aside class="notes">
-				    Of course, this is quite a poor test. Really we should have something that checks the health of the ALB target group, combined with validating the output of an http GET to the ALB endpoint.
+				    This is one of my favourite AWS features! The ability to pass roles to boxes. This means we don't need to pass credentials around. So great.
+				  </aside>
+				</section>
+				<section>
+				  <h2>Update Launch Configuration</h2>
+				  (new sections <i>italicised</i>)
+				  <pre><code data-noescape>resource "aws_launch_configuration" "workshop_launch_conf" {
+    image_id = "ami-c481fad3"
+    instance_type = "t2.micro"
+    key_name = "jez"
+    security_groups = ["${aws_security_group.web_sg.id}"]
+    associate_public_ip_address = true
+    lifecycle {
+        create_before_destroy = true
+    }
+    <i>iam_instance_profile =
+        "${aws_iam_instance_profile.workshop_profile.arn}"    
+    user_data =  &lt;&lt;EOF
+#!/usr/bin/env bash
+aws s3 cp s3://18f-terraform-workshop/provision.sh /root/
+bash /root/provision.sh
+EOF</i></code></pre>
+				  <aside class="notes">
+				    AWS Linux has the AWS command line preinstalled, and will get creds from an instance profile
+				  </aside>
+				</section>
+				<section>
+				  <h2>Instance Profiles</h2>
+				  <pre><code>resource "aws_iam_instance_profile" "workshop_profile" {
+    name = "workshop_profile"
+    roles = ["${aws_iam_role.ec2_role.name}"]
+}</code></pre>
+				</section>
+				<section>
+				  <h2>Define Role</h2>
+				  <pre><code>resource "aws_iam_role" "ec2_role" {
+    name = "ec2_role"
+    assume_role_policy = &lt;&lt;EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": { "Service": "ec2.amazonaws.com" },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}</code></pre>
+				</section>
+				<section>
+				  <h2>Define Policy</h2>
+				  <pre><code>resource "aws_iam_role_policy" "s3_bucket_policy" {
+    name = "s3_deploy_bucket_policy"
+    role = "${aws_iam_role.ec2_role.id}"
+    policy = &lt;&lt;EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [ "s3:Get*", "s3:List*" ],
+      "Resource": [ "arn:aws:s3:::18f-terraform-workshop",
+                    "arn:aws:s3:::18f-terraform-workshop/*" ]
+    }
+  ]
+}
+EOF
+}</code></pre>
+				</section>
+				<section>
+				  <h2>Let's deploy!</h2>
+				  <ul>
+				    <li><code>terraform apply terraform</code></li>
+				    <li>Once that's done, we have to kill the boxes so auto scaling will recreate</li>
+				  </ul>
+				  <pre><code>aws autoscaling describe-auto-scaling-instances
+aws autoscaling detach-instances --instance-ids ???? \
+    --auto-scaling-group-name ???? \
+    --no-should-decrement-desired-capacity
+aws ec2 terminate-instances --instance-ids ????</code></pre>
+				  <ul>
+				    <li>(this can be used generally to take a server out of rotation and create a new one)</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>Hello, World</h2>
+				  After a couple of minutes, we should get an "OK" via SMS, and our host should be up. While we're waiting, let's take a quick look at what's in the S3 bucket.
+				  <aside class="notes">
+				    Go through the contents of /code/scripts in this repo
 				  </aside>
 				</section>
 				<section>
@@ -141,8 +238,9 @@ output "sns.arn" {
 				  <h2>Unit 5 review</h2>
 				  <ul>
 				    <li class="fragment">We introduced test-driven development</li>
-				    <li class="fragment">We created some alerts</li>
-				    <li class="fragment">We triggered the alert and then auto scaling reset it</li>
+				    <li class="fragment">We created an alert</li>
+				    <li class="fragment">We showed how to pass an AWS role to an EC2 host</li>
+				    <li class="fragment">We built a provisioning and deployment system</li>
 				    <li class="fragment">We refactored our code</li>
 				  </ul>
 				</section>

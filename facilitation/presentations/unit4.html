@@ -149,7 +149,7 @@ resource "aws_alb_listener" "workshop_alb_http" {
     port = 80
     protocol = "HTTP"
     health_check {
-      matcher = "200,301,403"
+      matcher = "200,301"
   }
 }
 
@@ -157,7 +157,7 @@ output "alb.dns" {
     value = "${aws_alb.workshop_alb.dns_name}"
 }</code></pre>
 				  <aside class="notes">
-				    403 you ask? It's because the default install page on Apache httpd sends you a 403.
+				    Note - the target group is not going to show healthy at first. The default install page on Apache httpd sends you a 403. 403 is not a valid "heatlhy" code for a target group.
 				  </aside>
 				</section>
 				<section>
