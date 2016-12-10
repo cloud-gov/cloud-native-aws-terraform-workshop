@@ -176,6 +176,17 @@ output "rds_instance_id" {
 				  <aside class="notes">This is annoying. There is no instance profile equivalent to make creds magically appear on the host. This is probably not the best way but...</aside>				    
 				</section>
 				<section>
+				  <h2>Setting Up the First Domino</h2>
+				  Create <code>/code/scripts/credentials</code> in your repo with the following contents:
+				  <pre><code data-noescape>export HTTP_DB_PASSWORD=<mark>&lt;long_random_string&gt;</mark></code></pre>
+				  Then on the command line, <code>terraform apply terraform</code> and note the value of <code>rds_instance_id</code>. Finally, run:
+				  <pre><code data-noescape>aws rds modify-db-instance \
+  --db-instance-identifier <mark>&lt;rds_instance_id&gt;</mark> \
+  --apply-immediately --master-user-password <mark>&lt;db_password&gt;</mark>
+./deploy.sh # copy credentials to S3 bucket</code></pre>
+				  ...you can (and should) script this.
+				</section>
+				<section>
 				  <h2>Connection String</h2>
 				  In the <code>aws_launch_configuration</code> section of <code>autoscale.tf</code>:
 				  <pre><code data-noescape>    user_data =  &lt;&lt;EOF
@@ -186,7 +197,22 @@ echo "export HTTP_DB_URI=${aws_db_instance.workshop_db.endpoint}" \
 aws s3 cp s3://18f-terraform-workshop/provision.sh /root/
 bash /root/provision.sh
 EOF</code></pre>
+Now <code>terraform apply terraform</code> and kill your auto scaling EC2 instances (again).
 </section>
+				<section>
+				  <h2>Getting the Creds to the App</h2>
+				  Our provision script sends it to the httpd init script...
+				  <pre><code>echo ". /etc/environment" | cat - /etc/init.d/httpd > /tmp/httpd \
+&& mv /tmp/httpd /etc/init.d/httpd</code></pre>
+				  httpd's configuration passes it to the app...
+				  <pre><code>&lt;Directory "/var/www/html"&gt;
+    PassEnv HTTP_DB_URI
+    PassEnv HTTP_DB_PASSWORD
+...
+&lt;Directory&gt;</code></pre>
+(PHP only accepts environment variables with the <code>HTTP_</code> prefix for securitay)
+
+				</section>
 				<section>
 				  <h2>Unit 6 review</h2>
 				  <ul>
@@ -198,7 +224,18 @@ EOF</code></pre>
 				  </ul>
 				</section>
 				<section>
-				  The End
+				  <h2>Loose ends</h2>
+				  <ul>
+				    <li>X509 certificates and https</li>
+				    <li>Proper secret management (e.g. Vault</li>
+				    <li>Putting things in CI)</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>The End</h2>
+				  <p>Please <code>terraform destroy terraform</code>!</p>
+				  <center><blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">when u run a terraform command <a href="https://t.co/AZuter4g1R">pic.twitter.com/AZuter4g1R</a></p>&mdash; Rick Branson (@rbranson) <a href="https://twitter.com/rbranson/status/744634444380680193">June 19, 2016</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script></center>
 				</section>
 
 			</div>
