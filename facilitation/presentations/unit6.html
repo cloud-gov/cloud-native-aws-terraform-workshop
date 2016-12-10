@@ -1,0 +1,225 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/18f.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+				  <h2>Infrastructure as Code with Terraform and AWS</h2>
+				  <h2><em>Unit 6: Databases</em></h2>
+				  <p>This 18F <a href="https://github.com/18F/12-factor-aws-terraform-training">workshop</a> is in the worldwide public domain.</p>
+				</section>
+				<section>
+				  <h2>Learning objectives</h2>
+				  <ul>
+				    <li>Understand how to build highly available databases with RDS</li>
+				    <li>Know how to pass credentials to running apps</li>
+				    <li>Be able to continuously deploy</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>Update ALB target group</h2>
+				  <pre><code data-noescape>resource "aws_alb_target_group" "workshop_alb" {
+    name = "workshop-alb-target-<mark>[name]</mark>"
+    vpc_id = "${aws_vpc.workshop_vpc.id}"
+    port = 80
+    protocol = "HTTP"
+    health_check {
+      matcher = "200,301"
+      <mark>path = "/status.php"</mark>
+  }
+}</code></pre>
+Then <code>terraform apply terraform</code>
+				  <aside class="notes">
+				    status.php is a script that dies with a 500 if it can't make a database connection. It also logs!
+				  </aside>
+				</section>
+				<section>
+				  <h2>Let's set up logging</h2>
+				  <pre><code data-noescape>resource "aws_iam_role_policy" "s3_bucket_policy" {
+...
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [ "s3:Get*", "s3:List*" ],
+      "Resource": [ "arn:aws:s3:::18f-terraform-workshop",
+                    "arn:aws:s3:::18f-terraform-workshop/*" ]
+    }<mark>,
+    {
+      "Effect": "Allow",
+      "Action": [ "logs:CreateLogGroup", "logs:CreateLogStream",
+        "logs:PutLogEvents", "logs:DescribeLogStreams" ],
+      "Resource": [ "arn:aws:logs:*:*:*" ]
+    }</mark>
+  ]
+}
+EOF
+}</code></pre>
+<p>Don't miss the comma! <code>terraform apply terraform</code></p>
+				</section>
+				<section>
+				  <h2>Now we can see logs</h2>
+				  <img src="images/cloudwatch_logs.png"/>
+				  <aside class="notes">
+				    Note: this is not just magic. In <code>/code/scripts</code> in this repo, we install a cloudwatch agent in <code>provision.sh</code>, and the config is in <code>cloudwatch.conf</code>
+				  </aside>
+				</section>
+				<section>
+				  <p>Now we have a failing test, and in the logs you should see something like <code>Couldn't create database connection with URI: Error: SQLSTATE[HY000] [2002] No such file or directory</code></p>
+				  <p>Note: <b>We're not going to create databases for everyone.</b> For the rest of the class, the instructor will run the code.</p>
+				  <aside class="notes">This is because we can't provide credentials separately for each participant without creating S3 buckets for everyone, and it's too much of a drag for a 1-day workshop. Instructors should create the db up front, and supply the correct credentials in order to make the alert stop.</aside>
+				</section>
+				<section>
+				  <h2>RDS</h2>
+				  <ul>
+				    <li class="fragment">RDS creates pre-configured database instances on AWS</li>
+				    <li class="fragment">PostgreSQL, MySQL, MariaDB, Oracle, and Microsoft SQL Server are all supported.</li>
+				    <li class="fragment">Exports CloudWatch metrics such as %CPU, free space, connections</li>
+				    <li class="fragment">RDS automatically handles backups (into S3)</li>
+				    <li class="fragment">You can configure read replicas to scale out</li>
+				    <li class="fragment">You can also have multi-AZ deployments for HA</li>
+				    <li class="fragment">You can resize storage, upgrade the engine, or change instance type on demand</li>
+				  </ul>
+				</section>
+				<section>
+				  <h2>RDS</h2>
+				  <img src="http://d1nqddva888cns.cloudfront.net/rds_ha_5.png" />
+				</section>
+				<section>
+				  <h2>Database networking</h2>
+				  In <code>networks.tf</code>
+				  <pre><code data-noescape>resource "aws_subnet" "db_subnet_1" {
+    vpc_id = "${aws_vpc.workshop_vpc.id}"
+    availability_zone = "us-east-1a"
+    cidr_block = "<mark>10.0.X.128/26</mark>"
+    map_public_ip_on_launch = false
+}
+
+resource "aws_subnet" "db_subnet_2" {
+    vpc_id = "${aws_vpc.workshop_vpc.id}"
+    availability_zone = "us-east-1d"
+    cidr_block = "<mark>10.0.X.192/26</mark>"
+    map_public_ip_on_launch = false
+}
+
+resource "aws_db_subnet_group" "db_subnet_group" {
+    name = "db-subnet-group"
+    subnet_ids = ["${aws_subnet.db_subnet_1.id}",
+        "${aws_subnet.db_subnet_2.id}"]
+}</code></pre>
+				</section>
+				<section>
+				  <h2>Add a Security Group</h2>
+				  Also in <code>networks.tf</code>
+<pre><code>resource "aws_security_group" "db" {
+  name = "db"
+  vpc_id = "${aws_vpc.workshop_vpc.id}"
+
+  ingress {
+    from_port = 3306
+    to_port = 3306
+    protocol = "tcp"
+    security_groups = [ "${aws_security_group.web_sg.id}",
+        "${aws_security_group.bastion_sg.id}" ]
+  }
+}
+</code></pre>				  
+				</section>
+				<section>
+				  <h2>Creating a Database</h2>
+				  Create a file called <code>db.tf</code>
+				  <pre><code data-noescape>resource "aws_db_instance" "workshop_db" {
+  allocated_storage = 10
+  engine = "mysql"
+  multi_az = false # True in real life for HA
+  instance_class = "db.t2.micro"
+  name = "db18fworkshop"
+  username = "workshop"
+  password = "dummy_password"
+  publicly_accessible = false
+  storage_type = "gp2"
+  publicly_accessible = false
+  db_subnet_group_name = "${aws_db_subnet_group.db_subnet_group.id}"
+  vpc_security_group_ids = [ "${aws_security_group.db.id}" ]
+}
+
+output "rds_instance_id" {
+  value = "${aws_db_instance.workshop_db.id}"
+}
+				  </code></pre>
+				</section>
+				<section>
+				  <h2>Getting DB Creds To Our App</h2>
+				  <li class="fragment">We can get the DB connection string out of terraform</li>
+				  <li class="fragment">The password is more annoying</li>
+				  <li class="fragment">We'll set the password from the command line, then pass it in a file via S3</li>
+				  <aside class="notes">This is annoying. There is no instance profile equivalent to make creds magically appear on the host. This is probably not the best way but...</aside>				    
+				</section>
+				<section>
+				  <h2>Connection String</h2>
+				  In the <code>aws_launch_configuration</code> section of <code>autoscale.tf</code>:
+				  <pre><code data-noescape>    user_data =  &lt;&lt;EOF
+#!/usr/bin/env bash
+<mark>aws s3 cp s3://18f-terraform-workshop/credentials /etc/environment
+echo "export HTTP_DB_URI=${aws_db_instance.workshop_db.endpoint}" \
+  >> /etc/environment</mark>
+aws s3 cp s3://18f-terraform-workshop/provision.sh /root/
+bash /root/provision.sh
+EOF</code></pre>
+</section>
+				<section>
+				  <h2>Unit 6 review</h2>
+				  <ul>
+				    <li class="fragment">We introduced test-driven development</li>
+				    <li class="fragment">We created an alert</li>
+				    <li class="fragment">We showed how to pass an AWS role to an EC2 host</li>
+				    <li class="fragment">We built a provisioning and deployment system</li>
+				    <li class="fragment">We refactored our code</li>
+				  </ul>
+				</section>
+				<section>
+				  The End
+				</section>
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
