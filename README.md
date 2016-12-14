@@ -13,7 +13,8 @@ A 1-day hands-on training class in which participants will learn:
 
 * You must bring a laptop with support for bash. Linux, MacOS, or Windows 10 with Windows Subsystem for Linux installed are all fine.
 * You must be comfortable using the shell / command-line.
-* Please install the [AWS CLI](https://aws.amazon.com/cli/), [Terraform](https://www.terraform.io/), and [Vagrant](https://www.vagrantup.com/) BEFORE coming to class.
+* Please install the [AWS CLI](https://aws.amazon.com/cli/), [Terraform](https://www.terraform.io/) BEFORE coming to class.
+* Note, you may also be interested in installing [Vagrant](https://www.vagrantup.com/) but this is *optional.*
 
 ### Public domain
 
