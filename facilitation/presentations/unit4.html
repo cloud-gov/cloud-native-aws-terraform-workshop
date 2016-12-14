@@ -131,7 +131,23 @@ resource "aws_route_table_association" "route_subnet_2" {
   security_groups = ["${aws_security_group.alb_sg.id}"]
 }
 
-resource "aws_alb_listener" "workshop_alb_http" {
+resource "aws_alb_target_group" "workshop_alb" {
+  name = "workshop-alb-target-<mark>[name]</mark>"
+  vpc_id = "${aws_vpc.workshop_vpc.id}"
+  port = 80
+  protocol = "HTTP"
+  health_check {
+    matcher = "200,301"
+  }
+}
+</code></pre>
+				  <aside class="notes">
+				    Note - the target group is not going to show healthy at first. The default install page on Apache httpd sends you a 403. 403 is not a valid "heatlhy" code for a target group.
+				  </aside>
+				</section>
+				<section>
+				  <h2>ALB target group</h2>
+<pre><code data-noescape>resource "aws_alb_listener" "workshop_alb_http" {
   load_balancer_arn = "${aws_alb.workshop_alb.arn}"
   port = 80
   protocol = "HTTP"
@@ -139,26 +155,14 @@ resource "aws_alb_listener" "workshop_alb_http" {
     target_group_arn = "${aws_alb_target_group.workshop_alb.arn}"
     type = "forward"
   }
-}</code></pre>
-				</section>
-				<section>
-				  <h2>ALB target group</h2>
-				  <pre><code data-noescape>resource "aws_alb_target_group" "workshop_alb" {
-    name = "workshop-alb-target-<mark>[name]</mark>"
-    vpc_id = "${aws_vpc.workshop_vpc.id}"
-    port = 80
-    protocol = "HTTP"
-    health_check {
-      matcher = "200,301"
-  }
 }
 
 output "alb.dns" {
     value = "${aws_alb.workshop_alb.dns_name}"
 }</code></pre>
-				  <aside class="notes">
-				    Note - the target group is not going to show healthy at first. The default install page on Apache httpd sends you a 403. 403 is not a valid "heatlhy" code for a target group.
-				  </aside>
+  <aside class="notes">
+    The output variable <code>dns_name</code> gives us the FQDN of the load balancer. This is a major advantage of using ELBs - no IP addresses in your DNS entries.
+  </aside>
 				</section>
 				<section>
 				  <h2>Launch configuration</h2>

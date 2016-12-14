@@ -90,7 +90,7 @@ output "sns.arn" {
 				<section>
 				  <h2>Subscribe to your topic</h2>
 				  <p>You can't subscribe via SMS or email using Terraform, because the endpoint must be authorized. So run <code>terraform apply terraform</code> and note the value of <code>sns.arn</code> it outputs. Then at your command prompt run:</p>
-				  <pre><code data-noescape>aws sns subscribe --topic-arn <mark>&lt;sns.arn&gt;</mark> --protocol sms \<br/>--notification-endpoint "<mark>&lt;cell number&gt;</mark>"</code></pre>
+				  <pre><code data-noescape>aws sns subscribe --topic-arn <mark>&lt;sns.arn&gt;</mark> --protocol email \<br/>--notification-endpoint "<mark>&lt;email address&gt;</mark>"</code></pre>
 				  <p>Check it works:</p>
 				  <pre><code data-noescape>aws sns publish --message "Wotcha" --topic <mark>&lt;sns.arn&gt;</mark></code></pre>
 				  <aside class="notes">
@@ -99,7 +99,7 @@ output "sns.arn" {
 				<section>
 				  <h2>Configure the alert</h2>
 				  <pre><code data-noescape>resource "aws_cloudwatch_metric_alarm" "dead_server" {
-    alarm_name = "Less than two healthy hosts in my cluster!"
+    alarm_name = "Less than two healthy hosts in my cluster <mark>[name]</mark>!"
     comparison_operator = "LessThanThreshold"
     evaluation_periods = "1"
     metric_name = "HealthyHostCount"
@@ -159,15 +159,15 @@ EOF</i></code></pre>
 				</section>
 				<section>
 				  <h2>Instance Profiles</h2>
-				  <pre><code>resource "aws_iam_instance_profile" "workshop_profile" {
-    name = "workshop_profile"
+				  <pre><code data-noescape>resource "aws_iam_instance_profile" "workshop_profile" {
+    name = "workshop_profile_<mark>[name]</mark>"
     roles = ["${aws_iam_role.ec2_role.name}"]
 }</code></pre>
 				</section>
 				<section>
 				  <h2>Define Role</h2>
-				  <pre><code>resource "aws_iam_role" "ec2_role" {
-    name = "ec2_role"
+				  <pre><code data-noescape>resource "aws_iam_role" "ec2_role" {
+    name = "ec2_role_<mark>[name]</mark>"
     assume_role_policy = &lt;&lt;EOF
 {
   "Version": "2012-10-17",
@@ -185,8 +185,8 @@ EOF
 				</section>
 				<section>
 				  <h2>Define Policy</h2>
-				  <pre><code>resource "aws_iam_role_policy" "s3_bucket_policy" {
-    name = "s3_deploy_bucket_policy"
+				  <pre><code data-noescape>resource "aws_iam_role_policy" "s3_bucket_policy" {
+    name = "s3_deploy_bucket_policy_<mark>[name]</mark>"
     role = "${aws_iam_role.ec2_role.id}"
     policy = &lt;&lt;EOF
 {
