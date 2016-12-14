@@ -7,9 +7,9 @@ A 1-day hands-on training class in which participants will learn:
 * How to configure a simple, highly available AWS application environment with AWS autoscaling groups, load balancers, RDS, and CloudWatch.
 * Infrastructure-as-Code with AWS and Terraform: How to configure and manage AWS infrastructure using Terraform.
 * Very simple automated deployment using shell scripts and an S3 bucket.
-* Why building distributed systems motivates the [12-factor app](https://12factor.net/) pattern.
+* An introduction to architecture for distributed systems.
 
-### Prerequisites
+### Prerequisites for Workshop Participants
 
 * You must bring a laptop with support for bash. Linux, MacOS, or Windows 10 with Windows Subsystem for Linux installed are all fine. Alternatively, you can stand up a virtual linux box using a tool such as [VirtualBox](https://www.virtualbox.org/).
 * You must be comfortable using the shell / command-line.
@@ -18,10 +18,12 @@ A 1-day hands-on training class in which participants will learn:
 
 ### Running the slides locally
 
-The workshop is run as a series of slide decks. The decks are written in HTML, and use [reveal.js](http://lab.hakim.se/reveal-js/#/). To view the slides on your local machine, first cd to [facilitation/presentations](facilitation/presentations). Then install `npm` if you don't already have it, and run the following commands:
+The workshop is run as a series of slide decks. The decks are written in HTML, and use [reveal.js](http://lab.hakim.se/reveal-js/#/). To view the slides on your local machine, first go to the [slides](slides) directory. Then install `npm` if you don't already have it, and run the following commands:
 
-```npm install
-grunt serve```
+```
+npm install
+grunt serve
+```
 
 This should run an http server locally and spawn a browser window with the first slide of the workshop. Check out the [reveal.js documentation](https://github.com/hakimel/reveal.js) for more on using reveal.js.
 
