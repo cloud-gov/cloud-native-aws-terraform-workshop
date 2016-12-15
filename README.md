@@ -41,6 +41,10 @@ We recommend using an empty AWS account for this workshop. Each participant will
 
 The instructor should upload the contents of the [code/scripts](code/scripts) directory to an S3 bucket. The code and slides assume that the S3 bucket is called `18f-terraform-workshop`, but if you're not running this at 18F, you'll want to upload to your own bucket, and you should change all the references to this S3 bucket in the repo. Find them using `grep -R "18f-terraform-bucket" *`
 
+### Acknowledgements
+
+Charity Majors' [blog posts on Terraform](https://charity.wtf/tag/terraform/) proved valuable in preparing this workshop. Thanks Charity.
+
 ### Public domain
 
 This project is in the worldwide [public domain](LICENSE.md). As stated
