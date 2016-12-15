@@ -9,6 +9,10 @@ A 1-day hands-on training class in which participants will learn:
 * Very simple automated deployment using shell scripts and an S3 bucket.
 * An introduction to architecture for distributed systems.
 
+The basic infrastructure we build is shown in this system diagram:
+
+![system diagram](https://github.com/18F/cloud-native-aws-terraform-workshop/raw/master/slides/images/ha_aws_system.png)
+
 ### Prerequisites for Workshop Participants
 
 * You must bring a laptop with support for bash. Linux, MacOS, or Windows 10 with Windows Subsystem for Linux installed are all fine. Alternatively, you can stand up a virtual linux box using a tool such as [VirtualBox](https://www.virtualbox.org/).
