@@ -110,7 +110,7 @@ EOF
 				  In <code>networks.tf</code>
 				  <pre><code data-noescape>resource "aws_subnet" "db_subnet_1" {
     vpc_id = "${aws_vpc.workshop_vpc.id}"
-    availability_zone = "us-east-1a"
+    availability_zone = "us-east-1b"
     cidr_block = "<mark>10.0.X.128/26</mark>"
     map_public_ip_on_launch = false
 }

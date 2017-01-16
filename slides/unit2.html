@@ -58,7 +58,7 @@ aws ec2 import-key-pair --key-name <mark>[key name]</mark> \
 
 resource "aws_subnet" "public_subnet_1" {
     vpc_id = "${aws_vpc.workshop_vpc.id}"
-    availability_zone = "us-east-1a"
+    availability_zone = "us-east-1b"
     cidr_block = "<mark>10.0.X.0/26</mark>"
 }
 
